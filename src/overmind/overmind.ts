@@ -1,9 +1,11 @@
 import { createOvermind, IConfig } from 'overmind';
-import { merge } from 'overmind/config';
+import { namespaced } from 'overmind/config';
 import { createHook } from 'overmind-react';
 import authModule from './auth';
 
-const config = merge(authModule, {});
+const config = namespaced({
+  auth: authModule,
+});
 
 export const overmind = createOvermind(config);
 

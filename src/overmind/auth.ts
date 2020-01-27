@@ -33,13 +33,13 @@ const logIn: AsyncAction<{
 }> = async ({ state, effects, actions }, { username, password }) => {
   state.auth.isPending = true;
   try {
-    if (await effects.authenticate(username, password)) {
-      actions.saveUser({ username });
+    if (await effects.auth.authenticate(username, password)) {
+      actions.auth.saveUser({ username });
     } else {
-      actions.setError({ error: 'User not found' });
+      actions.auth.setError({ error: 'User not found' });
     }
   } catch (error) {
-    actions.setError({ error: error.message });
+    actions.auth.setError({ error: error.message });
   } finally {
     state.auth.isPending = false;
   }
@@ -55,7 +55,7 @@ const setError: Action<{ error: string }> = ({ state }, { error }) => {
 };
 
 const logOut: Action = ({ actions }) => {
-  actions.resetAuth();
+  actions.auth.resetAuth();
 };
 
 const authenticate = (username: string, password: string) =>
@@ -72,9 +72,7 @@ const authenticate = (username: string, password: string) =>
   });
 
 export const config = {
-  state: {
-    auth: state,
-  },
+  state,
   actions: {
     logIn,
     logOut,
