@@ -1,10 +1,11 @@
 import { Action, AsyncAction } from 'overmind';
+import { statecharts, Statechart } from 'overmind/config';
 
 export type AuthState = {
   message: string;
   isLoggedIn: boolean;
   isPending: boolean;
-  error?: Error;
+  error?: string;
   username?: string;
 };
 
@@ -25,20 +26,32 @@ const resetAuth: Action = ({ state }) => {
   state.auth.username = undefined;
 };
 
+// {"username":"zamotany","password":"password"}
 const logIn: AsyncAction<{
   username: string;
   password: string;
 }> = async ({ state, effects, actions }, { username, password }) => {
-  actions.resetAuth();
   state.auth.isPending = true;
   try {
-    state.auth.isLoggedIn = await effects.authenticate(username, password);
-    state.auth.username = state.auth.isLoggedIn ? username : undefined;
+    if (await effects.authenticate(username, password)) {
+      actions.saveUser({ username });
+    } else {
+      actions.setError({ error: 'User not found' });
+    }
   } catch (error) {
-    state.auth.error = error;
+    actions.setError({ error: error.message });
   } finally {
     state.auth.isPending = false;
   }
+};
+
+const saveUser: Action<{ username: string }> = ({ state }, { username }) => {
+  state.auth.isLoggedIn = true;
+  state.auth.username = username;
+};
+
+const setError: Action<{ error: string }> = ({ state }, { error }) => {
+  state.auth.error = error;
 };
 
 const logOut: Action = ({ actions }) => {
@@ -65,9 +78,51 @@ export const config = {
   actions: {
     logIn,
     logOut,
+    saveUser,
+    setError,
     resetAuth,
   },
   effects: {
     authenticate,
   },
 };
+
+const chart: Statechart<
+  typeof config,
+  {
+    LOGGED_OUT: void;
+    PENDING: void;
+    LOGGED_IN: void;
+    ERROR: void;
+  }
+> = {
+  initial: 'LOGGED_OUT',
+  states: {
+    LOGGED_OUT: {
+      on: {
+        logIn: 'PENDING',
+      },
+    },
+    PENDING: {
+      on: {
+        saveUser: 'LOGGED_IN',
+        setError: 'ERROR',
+      },
+    },
+    LOGGED_IN: {
+      on: {
+        logOut: 'LOGGED_OUT',
+        resetAuth: null,
+      },
+    },
+    ERROR: {
+      on: {
+        resetAuth: 'LOGGED_OUT',
+      },
+    },
+  },
+};
+
+export default statecharts(config, {
+  auth: chart,
+});
