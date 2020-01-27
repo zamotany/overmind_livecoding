@@ -5,7 +5,9 @@ import { useOvermind } from './overmind/overmind';
 
 export function App() {
   const {
-    state: { message },
+    state: {
+      auth: { message },
+    },
   } = useOvermind();
 
   return (
