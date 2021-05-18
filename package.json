@@ -51,7 +51,7 @@
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-livereload": "^1.0.4",
     "rollup-plugin-postcss": "^2.0.5",
-    "rollup-plugin-serve": "^1.0.1",
+    "rollup-plugin-serve": "^1.0.2",
     "tailwind-ts-gen": "^1.0.0",
     "typescript": "^3.7.5"
   }
